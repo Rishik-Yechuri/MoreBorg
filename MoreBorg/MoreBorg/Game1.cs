@@ -33,9 +33,6 @@ namespace MoreBorg
         Rectangle tubeLeftRect;
         Rectangle tubeRightRect;
         Rectangle tubeUpRect;
-        //Rectangle torpedoDownRect;
-        //Rectangle torpedoLeftRect;
-        //Rectangle torpedoRightRect;
         Rectangle torpedoUpRect;
         Rectangle badGuyTorpedo;
 
@@ -74,7 +71,23 @@ namespace MoreBorg
 
         int xBadTorp = 400;
         int yBadTorp = 30;
+
+        int xToBreakAt;
+        int yToBreakAt;
+
+        int propelJ;
+        MouseState oldMouse;
         SpriteFont font1;
+
+        Texture2D redBox;
+        Texture2D greenBox;
+        Rectangle propelRectangle;
+        Rectangle explodeRectangle;
+
+        Rectangle propelFilledRectangle;
+        Rectangle explodeFilledRectangle;
+        Rectangle totalEnergyRectangle;
+        Rectangle totalEnergyFilledRectangle;
         public Game1()
         {
             graphics = new GraphicsDeviceManager(this);
@@ -90,6 +103,7 @@ namespace MoreBorg
         protected override void Initialize()
         {
             // TODO: Add your initialization logic here
+            oldMouse = Mouse.GetState();
             turretRect = new Rectangle(230, 160, 300, 100);
             //
             tubeLeftRect = new Rectangle(250, 190, 100, 50);
@@ -98,6 +112,13 @@ namespace MoreBorg
             tubeDownRect = new Rectangle(380, 255, 50, 100);
             badGuyRectangle = new Rectangle(0, 0, 100, 93);
             badGuyTorpedo = new Rectangle(xBadTorp, yBadTorp, 50, 50);
+            propelRectangle = new Rectangle(40, 40, 126, 35);
+            explodeRectangle = new Rectangle(240, 40, 126, 35);
+            propelFilledRectangle = new Rectangle(40,40,0,35);
+            explodeFilledRectangle = new Rectangle(240,40,0,35);
+
+            totalEnergyRectangle = new Rectangle(440, 40, 126, 35);
+            totalEnergyFilledRectangle = new Rectangle(440, 40, 0, 35);
             xPos = 380;
             yPos = 100;
 
@@ -138,6 +159,8 @@ namespace MoreBorg
             badGuyTorpedoTexture = this.Content.Load<Texture2D>("Torpedo Down");
             torpedoUp = this.Content.Load<Texture2D>("Torpedo Up");
             badguys = this.Content.Load<Texture2D>("badguyship");
+            redBox = this.Content.Load<Texture2D>("redsquare");
+            greenBox = this.Content.Load<Texture2D>("greensquare");
             font1 = this.Content.Load<SpriteFont>("SpriteFont1");
         }
 
@@ -158,6 +181,10 @@ namespace MoreBorg
         protected override void Update(GameTime gameTime)
         {
             KeyboardState kb = Keyboard.GetState();
+            MouseState currentMouseState = Mouse.GetState();
+            propelFilledRectangle = new Rectangle(40, 40, propelJ * 14, 35);
+            explodeFilledRectangle = new Rectangle(240, 40, storedJ * 14, 35);
+            totalEnergyFilledRectangle = new Rectangle(440, 40, (int)(MJ * 1.26) , 35);
             if (isBadFired) {
                 if (directionOfBad.Equals("up")) {
                     yBadTorp += 6;
@@ -276,38 +303,100 @@ namespace MoreBorg
                 {
                     storedJ = 9;
                 }
+
+                if (kb.IsKeyDown(Keys.D0)) {
+                    propelJ = 0;
+                }else if (kb.IsKeyDown(Keys.D1))
+                {
+                    propelJ = 1;
+                }else if (kb.IsKeyDown(Keys.D2))
+                {
+                    propelJ = 2;
+                }else if (kb.IsKeyDown(Keys.D3))
+                {
+                    propelJ = 3;
+                }else if (kb.IsKeyDown(Keys.D4))
+                {
+                    propelJ = 4;
+                }else if (kb.IsKeyDown(Keys.D5))
+                {
+                    propelJ = 5;
+                }else if (kb.IsKeyDown(Keys.D6))
+                {
+                    propelJ = 6;
+                }
+                else if (kb.IsKeyDown(Keys.D7))
+                {
+                    propelJ = 7;
+                }
+                else if (kb.IsKeyDown(Keys.D8))
+                {
+                    propelJ = 8;
+                }
+                else if (kb.IsKeyDown(Keys.D9))
+                {
+                    propelJ = 9;
+                }
             }
-            torpedoPosUpdate(kb, oldKB);
+            torpedoPosUpdate(kb, oldKB,currentMouseState,oldMouse);
             if (isFired)
             {
                 if (goingDirection.Equals("up"))
                 {
                     torpLength = 50 + sizeToAdd;
                     yPos -= 6;
-
+                    if (yPos <= yToBreakAt)
+                    {
+                        isFired = false;
+                        propelJ = -1;
+                        storedJ = -1;
+                        resetTorpedo();
+                    }
                 }
                 else if (goingDirection.Equals("down"))
                 {
                     torpLength = 50 + sizeToAdd;
                     yPos += 6;
+                    if (yPos >= yToBreakAt)
+                    {
+                        isFired = false;
+                        storedJ = -1;
+                        propelJ = -1;
+                        resetTorpedo();
+                    }
                 }
                 else if (goingDirection.Equals("left"))
                 {
                     torpWidth = 50 + sizeToAdd;
                     xPos -= 6;
+                    if (xPos <= xToBreakAt)
+                    {
+                        isFired = false;
+                        storedJ = -1;
+                        propelJ = -1;
+                        resetTorpedo();
+                    }
                 }
                 else if (goingDirection.Equals("right"))
                 {
                     torpWidth = 50 + sizeToAdd;
                     xPos += 6;
+                    if (xPos >= xToBreakAt)
+                    {
+                        isFired = false;
+                        storedJ = -1;
+                        propelJ = -1;
+                        resetTorpedo();
+                    }
                 }
                 // torpedoUpRect = new Rectangle(xPos, yPos, torpWidth, torpLength);
-                if (yPos < -50 || yPos > 480 || xPos < -50 || xPos > 800)
+                /*if (yPos < -50 || yPos > 480 || xPos < -50 || xPos > 800)
                 {
                     isFired = false;
                     storedJ = -1;
                     resetTorpedo();
-                }
+                }*/
+              
             }
             // Allows the game to exit
             if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed)
@@ -315,7 +404,7 @@ namespace MoreBorg
 
             // TODO: Add your update logic here
             oldKB = kb;
-
+            oldMouse = currentMouseState;
             base.Update(gameTime);
         }
 
@@ -337,27 +426,35 @@ namespace MoreBorg
             spriteBatch.Draw(badguys, badGuyRectangle, Color.White);
             spriteBatch.Draw(badGuyTorpedoTexture, badGuyTorpedo, Color.White);
             spriteBatch.Draw(torpedoUp, torpedoUpRect, Color.White);
+            spriteBatch.Draw(redBox, propelRectangle, Color.White);
+            spriteBatch.Draw(redBox, explodeRectangle, Color.White);
+            spriteBatch.Draw(greenBox, propelFilledRectangle, Color.White);
+            spriteBatch.Draw(greenBox, explodeFilledRectangle, Color.White);
+            spriteBatch.Draw(redBox,totalEnergyRectangle,Color.White);
+            spriteBatch.Draw(greenBox,totalEnergyFilledRectangle,Color.White);
+
+            spriteBatch.DrawString(font1, "Propel Energy", new Vector2(40, 10), Color.Black);
+            spriteBatch.DrawString(font1, "Explode Energy", new Vector2(230, 10), Color.Black);
 
             spriteBatch.DrawString(font1, "MJ:" + MJ, new Vector2(510, 100), Color.Black);
             spriteBatch.End();
 
             base.Draw(gameTime);
         }
-        public void torpedoPosUpdate(KeyboardState kb, KeyboardState oldKB)
+        public void torpedoPosUpdate(KeyboardState kb, KeyboardState oldKB,MouseState mouse,MouseState oldMouse)
         {
-            if (kb.IsKeyDown(Keys.Space) && !oldKB.IsKeyDown(Keys.Space) && !isFired)
-            {
-                isFired = true;
-                goingDirection = facingDirection;
-                if (storedJ == -1) { storedJ = 0; }
-                if (storedJ > MJ)
-                {
-                    storedJ = MJ;
+            int mouseX = mouse.X;
+            int mouseY = mouse.Y;
+            int[,] torpedoCoords = new int[,]{ {380,110},{460,196},{380,255},{250,190}};
+            int valueOfClosest = 25000;
+            int indexOfClosest = 0;
+            for (int y=0; y<4;y++) {
+                if (Math.Sqrt(Math.Pow(torpedoCoords[y,0] - mouseX, 2) + Math.Pow(torpedoCoords[y,1] - mouseY, 2)) <= valueOfClosest) {
+                    valueOfClosest = (int)Math.Sqrt(Math.Pow(torpedoCoords[y, 0] - mouseX, 2) + Math.Pow(torpedoCoords[y, 1] - mouseY, 2));
+                    indexOfClosest = y;
                 }
-                MJ -= storedJ;
-                sizeToAdd = 10 * storedJ;
             }
-            if (kb.IsKeyDown(Keys.Up) && !oldKB.IsKeyDown(Keys.Up))
+            if (indexOfClosest == 0)
             {
                 colorUp = Color.Green;
                 colorDown = Color.Red;
@@ -369,34 +466,7 @@ namespace MoreBorg
                 }
                 updateTorpedo(isFired, 380, 100, "up");
             }
-
-            if (kb.IsKeyDown(Keys.Down) && !oldKB.IsKeyDown(Keys.Down))
-            {
-                colorDown = Color.Green;
-                colorUp = Color.Red;
-                colorLeft = Color.Red;
-                colorRight = Color.Red;
-                if (!isFired)
-                {
-                    torpedoUp = this.Content.Load<Texture2D>("Torpedo Down");
-                }
-                updateTorpedo(isFired, 380, 325, "down");
-            }
-
-            if (kb.IsKeyDown(Keys.Left) && !oldKB.IsKeyDown(Keys.Left))
-            {
-                colorLeft = Color.Green;
-                colorDown = Color.Red;
-                colorUp = Color.Red;
-                colorRight = Color.Red;
-                if (!isFired)
-                {
-                    torpedoUp = this.Content.Load<Texture2D>("Torpedo Left");
-                }
-                updateTorpedo(isFired, 250, 190, "left");
-            }
-
-            if (kb.IsKeyDown(Keys.Right) && !oldKB.IsKeyDown(Keys.Right))
+            if (indexOfClosest == 1)
             {
                 colorRight = Color.Green;
                 colorDown = Color.Red;
@@ -408,6 +478,64 @@ namespace MoreBorg
                 }
                 updateTorpedo(isFired, 510, 196, "right");
             }
+
+            if (indexOfClosest == 2)
+            {
+                colorDown = Color.Green;
+                colorUp = Color.Red;
+                colorLeft = Color.Red;
+                colorRight = Color.Red;
+                if (!isFired)
+                {
+                    torpedoUp = this.Content.Load<Texture2D>("Torpedo Down");
+                }
+                updateTorpedo(isFired, 380, 325, "down");
+            }
+            if (indexOfClosest == 3)
+            {
+                colorLeft = Color.Green;
+                colorDown = Color.Red;
+                colorUp = Color.Red;
+                colorRight = Color.Red;
+                if (!isFired)
+                {
+                    torpedoUp = this.Content.Load<Texture2D>("Torpedo Left");
+                }
+                updateTorpedo(isFired, 250, 190, "left");
+            }
+            if (mouse.LeftButton == ButtonState.Pressed && oldMouse.LeftButton != ButtonState.Pressed && !isFired)
+            {
+                isFired = true;
+                goingDirection = facingDirection;
+                if (storedJ == -1) { storedJ = 0; }
+                if (storedJ > MJ)
+                {
+                    storedJ = MJ;
+                }
+                MJ -= storedJ;
+                sizeToAdd = 10 * storedJ;
+                if (propelJ == -1) { storedJ = 0; }
+                if (propelJ > MJ) {
+                    propelJ = MJ;
+                }
+                MJ -= propelJ;
+                if (goingDirection.Equals("up")) {
+                    yToBreakAt = yPos - 100 * propelJ;
+                }
+                else if (goingDirection.Equals("down"))
+                {
+                    yToBreakAt = yPos + 100 * propelJ;
+                }
+                else if (goingDirection.Equals("left"))
+                {
+                    xToBreakAt = xPos - 100 * propelJ;
+                }
+                else if (goingDirection.Equals("right"))
+                {
+                    xToBreakAt = xPos + 100 * propelJ;
+                }
+            }
+       
         }
         public void updateTorpedo(Boolean hasBeenFired, int x, int y, String direction)
         {
